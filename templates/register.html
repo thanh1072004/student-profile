@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Student Registration</h2>
+        <form id="registerForm" class="form">
+            <input type="text" placeholder="Full Name" id="name" required>
+            <input type="email" placeholder="Email" id="email" required>
+            <input type="text" placeholder="Student ID" id="student_id" required>
+            <input type="tel" placeholder="Phone" id="phone">
+            <input type="text" placeholder="Major" id="major">
+            <input type="password" placeholder="Password" id="password" required>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+        <p><a href="/login">Already have an account? Login</a></p>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    student_id: document.getElementById('student_id').value,
+                    phone: document.getElementById('phone').value,
+                    major: document.getElementById('major').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            const result = await response.json();
+            alert(result.message);
+            if(result.success) window.location.href = '/login';
+        });
+    </script>
+</body>
+</html>

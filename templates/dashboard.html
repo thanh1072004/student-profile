@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .menu-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .menu-btn {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        .menu-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+        .menu-btn.secondary {
+            background: #6c757d;
+        }
+        .menu-btn.secondary:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📚 Student Dashboard</h2>
+        
+        <div id="profile" class="profile-box"></div>
+        
+        <h3>Chức năng</h3>
+        <div class="menu-buttons">
+            <a href="/grades" class="menu-btn">📊 Xem Điểm Số</a>
+            <button onclick="viewActivityLog()" class="menu-btn secondary">📋 Lịch Sử Hoạt Động</button>
+            <button onclick="logout()" class="menu-btn secondary">🚪 Đăng Xuất</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            const response = await fetch('/api/profile');
+            const student = await response.json();
+            document.getElementById('profile').innerHTML = `
+                <p><strong>👤 Tên:</strong> ${student.name}</p>
+                <p><strong>📧 Email:</strong> ${student.email}</p>
+                <p><strong>🎓 MSSV:</strong> ${student.student_id}</p>
+                <p><strong>📞 Điện thoại:</strong> ${student.phone || 'Chưa cập nhật'}</p>
+                <p><strong>🏢 Ngành:</strong> ${student.major || 'Chưa cập nhật'}</p>
+                <p><strong>⭐ CPA:</strong> ${student.cpa.toFixed(2)}</p>
+            `;
+        }
+        
+        async function viewActivityLog() {
+            const response = await fetch('/api/activity-log');
+            const activities = await response.json();
+            
+            let logText = '📋 Lịch Sử Hoạt Động:\n\n';
+            activities.forEach(a => {
+                logText += `${a.timestamp} - ${a.action}: ${a.details}\n`;
+            });
+            
+            alert(logText);
+        }
+        
+        function logout() {
+            fetch('/logout').then(() => window.location.href = '/');
+        }
+        
+        loadProfile();
+    </script>
+</body>
+</html>

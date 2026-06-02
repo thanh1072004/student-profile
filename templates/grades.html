@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xem Điểm Số & Tính CPA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .grades-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #667eea;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .student-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #5a6268;
+        }
+        .cpa-box {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .cpa-box h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .cpa-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+        .input-group input, .input-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .input-group button {
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .input-group button:hover {
+            background: #218838;
+        }
+        
+        .grade-table {
+            margin-top: 20px;
+        }
+        .delete-btn {
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .calculate-btn {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .calculate-btn:hover {
+            background: #5568d3;
+        }
+        
+        .grade-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .grade-info strong {
+            color: #667eea;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .success-message.show {
+            display: block;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            .student-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="back-btn">← Quay lại Dashboard</a>
+        
+        <h2>📊 Xem Điểm Số & Tính CPA</h2>
+        
+        <div class="grades-container">
+            <h3>Thông tin sinh viên</h3>
+            <div class="student-info">
+                <div class="info-item">
+                    <strong>Họ tên:</strong><br><span id="studentName">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>MSSV:</strong><br><span id="studentId">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Ngành học:</strong><br><span id="studentMajor">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Thời gian:</strong><br><span id="currentTime">-</span>
+                </div>
+            </div>
+            
+            <div class="cpa-box">
+                <h2>CPA Hiện tại</h2>
+                <div class="cpa-value" id="cpaBadge">0.00</div>
+            </div>
+        </div>
+        
+        <div class="grades-container">
+            <h3>📝 Nhập & Quản lý Điểm</h3>
+            
+            <div class="grade-info">
+                <strong>Thang điểm:</strong> A/A+ (4.0), B+ (3.5), B (3.0), C+ (2.5), C (2.0), D+ (1.5), D (1.0), F (0.0)<br>
+                <strong>CPA</strong> = Tổng (Điểm × Tín chỉ) / Tổng Tín chỉ
+            </div>
+            
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+            
+            <h4>Thêm môn học mới:</h4>
+            <div class="input-group">
+                <input type="text" placeholder="Tên môn học" id="subjectName">
+                <input type="number" placeholder="Tín chỉ" id="subjectCredit" min="1" value="3">
+                <select id="subjectGrade">
+                    <option value="A">A</option>
+                    <option value="A+">A+</option>
+                    <option value="B+">B+</option>
+                    <option value="B">B</option>
+                    <option value="C+">C+</option>
+                    <option value="C">C</option>
+                    <option value="D+">D+</option>
+                    <option value="D">D</option>
+                    <option value="F">F</option>
+                </select>
+                <button onclick="addGrade()">➕ Thêm</button>
+            </div>
+            
+            <h4>Danh sách môn học:</h4>
+            <div id="gradesTableContainer" class="grade-table"></div>
+            
+            <button class="calculate-btn" onclick="calculateCPA()">🧮 Tính CPA</button>
+        </div>
+    </div>
+
+    <script>
+        const gradeMap = {
+            'A': 4.0, 'A+': 4.0, 'B+': 3.5, 'B': 3.0, 
+            'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0
+        };
+        
+        function showMessage(type, message) {
+            const msgEl = document.getElementById(type + 'Message');
+            msgEl.textContent = message;
+            msgEl.classList.add('show');
+            setTimeout(() => msgEl.classList.remove('show'), 3000);
+        }
+        
+        async function loadGrades() {
+            try {
+                const response = await fetch('/api/grades');
+                const data = await response.json();
+                
+                document.getElementById('studentName').textContent = data.student_name;
+                document.getElementById('studentId').textContent = data.student_id;
+                document.getElementById('studentMajor').textContent = data.major || 'Chưa cập nhật';
+                document.getElementById('currentTime').textContent = new Date().toLocaleString('vi-VN');
+                document.getElementById('cpaBadge').textContent = data.current_cpa.toFixed(2);
+                
+                displayGradesTable(data.subjects);
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('error', '❌ Lỗi khi tải dữ liệu');
+            }
+        }
+        
+        function displayGradesTable(subjects) {
+            const container = document.getElementById('gradesTableContainer');
+            
+            if (subjects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <p>Chưa có môn học nào. Vui lòng thêm môn học!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Môn học</th>
+                            <th>Tín chỉ</th>
+                            <th>Điểm</th>
+                            <th>Điểm số</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            subjects.forEach(subject => {
+                const gradePoint = gradeMap[subject.grade] || 0;
+                html += `
+                    <tr>
+                        <td>${subject.subject}</td>
+                        <td>${subject.credit}</td>
+                        <td>${subject.grade}</td>
+                        <td>${gradePoint.toFixed(1)}</td>
+                        <td><button class="delete-btn" onclick="deleteGrade(${subject.id})">🗑️ Xóa</button></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        async function addGrade() {
+            const name = document.getElementById('subjectName').value.trim();
+            const credit = parseInt(document.getElementById('subjectCredit').value);
+            const grade = document.getElementById('subjectGrade').value;
+            
+            if (!name) {
+                showMessage('error', '❌ Vui lòng nhập tên môn học');
+                return;
+            }
+            
+            if (credit <= 0) {
+                showMessage('error', '❌ Tín chỉ phải lớn hơn 0');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/grades', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        subject: name,
+                        credit: credit,
+                        grade: grade
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('success', `✅ ${result.message}`);
+                    document.getElementById('subjectName').value = '';
+                    document.getElementById('subjectCredit').value = '3';
+                    loadGrades();
+                } else {
+                    showMessage('error', `❌ ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('error', '❌ Lỗi khi thêm môn học');
+            }
+        }
+        
+        async function deleteGrade(gradeId) {
+            if (!confirm('Bạn chắc chắn muốn xóa môn học này không?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/grades/${gradeId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('success', `✅ ${result.message}`);
+                    loadGrades();
+                } else {
+                    showMessage('error', `❌ ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('error', '❌ Lỗi khi xóa môn học');
+            }
+        }
+        
+        async function calculateCPA() {
+            try {
+                const response = await fetch('/api/calculate-cpa', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('success', `✅ CPA của bạn: ${result.cpa.toFixed(2)}`);
+                    document.getElementById('cpaBadge').textContent = result.cpa.toFixed(2);
+                } else {
+                    showMessage('error', `❌ ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('error', '❌ Lỗi khi tính CPA');
+            }
+        }
+        
+        // Load dữ liệu ban đầu
+        loadGrades();
+    </script>
+</body>
+</html>
