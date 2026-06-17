@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: student_web_app
+    ports:
+      - "8080:5000" # Ánh xạ cổng 80 (HTTP) của Ubuntu vào cổng 5000 của Flask
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: student_database
+    environment:
+      MYSQL_ROOT_PASSWORD: "P@ssw0rd!" # Phải khớp với mật khẩu trong app.py
+      MYSQL_DATABASE: "student_db"
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql # Khởi tạo Persistence Volume để không mất dữ liệu khi xóa Container
+    restart: always
+
+volumes:
+  db_data:
